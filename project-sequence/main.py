@@ -35,6 +35,14 @@ class Project:
 
 
 if __name__ == '__main__':
-    task = Task(0, "Task", 10.0)
-    task.add_dependency(1)
-    print(task.dependencies)
+    tasks = [Task(0, "Task0", 0.0), Task(1, "Task1", 10.0), Task(2, "Task2", 20.0)]
+    project = Project()
+    for task in tasks:
+        project.add_task(task)
+    
+    dependencies = {0: [], 1: [0], 2: [0, 1]}
+    for task_key in dependencies.keys():
+        for dependency_id in dependencies[task_key]:
+            project.add_dependency(task_key, dependency_id)
+    
+    print(project.tasks[2].dependencies)
