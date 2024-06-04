@@ -22,11 +22,11 @@ class Project:
         self.tasks = dict()  
     
 
-    def add_task(self, task: Task):
+    def add_task(self, task: Task) -> None:
         self.tasks[task.id] = task
     
 
-    def add_dependency(self, task_id: int, dependency_id: int):
+    def add_dependency(self, task_id: int, dependency_id: int) -> None:
         self.tasks[task_id].add_dependency(dependency_id)
     
 
