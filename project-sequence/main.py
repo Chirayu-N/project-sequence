@@ -1,3 +1,4 @@
+from collections import deque
 
 class Task:
     def __init__(self, id: int, name: str, duration: float) -> None:
@@ -30,8 +31,53 @@ class Project:
         self.tasks[task_id].add_dependency(dependency_id)
     
 
-    def find_critical_path(self):
-        pass # TODO
+    def topological_sort(self):
+        indegree = {task.id: 0 for task in self.tasks.values()}
+        for task in self.tasks.values():
+            for dep in task.dependencies:
+                indegree[dep.id] += 1
+
+        queue = deque([task.id for task in self.tasks.values() if indegree[task.id] == 0])
+        topo_order = []
+
+        while queue:
+            current_id = queue.popleft()
+            topo_order.append(current_id)
+            for dep in self.tasks[current_id].dependencies:
+                indegree[dep.id] -= 1
+                if indegree[dep.id] == 0:
+                    queue.append(dep.id)
+
+        return topo_order
+
+    def find_critical_path(self) -> list:
+        topo_order = self.topological_sort()
+
+        # Forward pass
+        for task_id in topo_order:
+            task = self.tasks[task_id]
+            if not task.dependencies:
+                task.earliest_start = 0
+            else:
+                task.earliest_start = max(dep.earliest_finish for dep in task.dependencies)
+            task.earliest_finish = task.earliest_start + task.duration
+
+        # Backward pass
+        reverse_topo_order = reversed(topo_order)
+        max_earliest_finish = max(self.tasks[task_id].earliest_finish for task_id in topo_order)
+        
+        for task_id in reverse_topo_order:
+            task = self.tasks[task_id]
+            if not any(dep for dep in self.tasks.values() if task in dep.dependencies):
+                task.latest_finish = max_earliest_finish
+            else:
+                task.latest_finish = min(dep.latest_start for dep in self.tasks.values() if task in dep.dependencies)
+            task.latest_start = task.latest_finish - task.duration
+            task.slack = task.latest_start - task.earliest_start
+
+        # Identify the critical path
+        critical_path = [task for task in self.tasks.values() if task.slack == 0]
+        return critical_path
 
 
 if __name__ == '__main__':
